@@ -290,5 +290,52 @@ class Profile {
 profileSalt) VALUES (:profileId, :profileActivationToken, :profileAtHandle, :profileEmail, :profilePhone, :profileHash, :profileSalt)";
 $statement = $pdo->prepare($query);
 
-$parameters = ["profileId" => $this -> profileId] ;
+$parameters = ["profileId" => $this -> profileId];
 
+/**
+ * inserts this Tweet into mySQL
+ *
+ * @param \PDO $pdo PDO connection object
+ * @throws \PDOException when mySQL related errors occur
+ * @throws \TypeError if $pdo is not a PDO connection object
+ **/
+public function insert(\PDO $pdo) : void {
+	// enforce the profileId is null (i.e., don't insert a profile that already exists)
+	if($this->profileId !== null) {
+		throw(new \PDOException("not a new profileId"));
+	}
+
+	// create query template
+	$query = "INSERT INTO profile(profileId, profileActvationToken, profileAtHandle, profileEmail, profileHash, profilePhone, profileSalt) VALUES(:profileId, :profileActvationToken, :profileAtHandle, :profileEmail, :profileHash, :profilePhone, :profileSalt,)";
+	$statement = $pdo->prepare($query);
+
+	// bind the member variables to the place holders in the template
+	$parameters = ["profileId" => $this->profileProfileId, "profileActivationToken" => $this->profileActivationToken, "profileAtHandle" => $this->profileAtHandle];
+	$statement->execute($parameters);
+
+	// update the null tweetId with what mySQL just gave us
+	$this->tweetId = intval($pdo->lastInsertId());
+}
+/**
+ * deletes this Tweet from mySQL
+ *
+ * @param \PDO $pdo PDO connection object
+ * @throws \PDOException when mySQL related errors occur
+ * @throws \TypeError if $pdo is not a PDO connection object
+ **/
+public function delete(\PDO $pdo) : void {
+	// enforce the tweetId is not null (i.e., don't delete a tweet that hasn't been inserted)
+	if($this->tweetId === null) {
+		throw(new \PDOException("unable to delete a tweet that does not exist"));
+	}
+
+	// create query template
+	$query = "DELETE FROM tweet WHERE tweetId = :tweetId";
+	$statement = $pdo->prepare($query);
+
+	// bind the member variables to the place holder in the template
+	$parameters = ["tweetId" => $this->tweetId];
+	$statement->execute($parameters);
+}
+
+/**
