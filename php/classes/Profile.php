@@ -21,7 +21,7 @@ class Profile {
 	 * @var int $profileActivationToken
 	 *
 	 **/
-	private $profileActivationToken;
+	private $profileActvationKey;
 	/**
 	 *User created information to identify user
 	 * @var string $profileAtHandle
@@ -52,7 +52,6 @@ class Profile {
 	 *
 	 **/
 	private $profileSalt;
-
 	/**
 	 * constructor for this profile
 	 * @param string $newProfileHash new value of profile Hash
@@ -68,274 +67,237 @@ class Profile {
 	 * @throws \Exception if some other exception occurs
 	 * @Documentation https://php.net/manual/en/language.oop5.decon.php
 	 **/
-
-	public function __construct(?int $newProfileId, string $newProfileActivationToken, string $newProfileAtHandle, $newProfileEmail, $newProfilePhone, $newProfileHash, $newProfileSalt = null) {
+	public function __construct($profileId, $profileAtHandle, $profilePhoneNumber, $profileEmail, $profileHash, $profileSalt) {
 		try {
-			$this->setProfileId($newProfileId);
-			$this->setProfileActivationToken($newProfileActivationToken);
-			$this->setProfileAtHandle($newProfileAtHandle);
-			$this->setProfileEmail($newProfileEmail);
-			$this->setProfilePhone($newProfilePhone);
-			$this->setprofileHash($newProfileHash);
-			$this->setprofileSalt($newProfileSalt);
-		} //determine what exception type was thrown
-		catch(\InvalidArgumentException | \RangeException | \Exception | \TypeError $exception) {
+			$this->setProfileId($profileId);
+			$this->setProfileAtHandle($profileAtHandle);
+			$this->setProfilePhoneNumber($profilePhoneNumber);
+			$this->setProfileEmail($profileEmail);
+			$this->setProfileHash($profileHash);
+			$this->setProfileSalt($profileSalt);
+		}
+		catch (\RangeException | \InvalidArgumentException | \Exception $exception) {
 			$exceptionType = get_class($exception);
-			throw(new $exceptionType($exception->getMessage(), 0, $exception));
+			throw (new $exceptionType($exception->getMessage(), 0, $exception));
 		}
 	}
-
 	/**
-	 * accessor method for profile id
+	 *Accessor method to retreive profile ID
 	 *
-	 * @return int|null value of profile id
+	 * @return int value of associated profileId
 	 **/
-	public function getProfileId(): int {
-		return ($this->profileId);
+	public function getProfileId() {
+		return($this->profileId);
 	}
-
 	/**
-	 * mutator method for profile id
+	 *Mutator method to alter profile's ID
 	 *
-	 * @param int|null $newProfileId new value of profile id
-	 * @throws \RangeException if $newProfileId is not positive
-	 * @throws \TypeError if $newProfileId is not an integer
+	 * @param int $newProfileId sets new value of profile ID
+	 * @throws \RangeException if the parameter is an integer less than 1
 	 **/
-	public function setProfileId(?int $newProfileId): void {
-		//if profile id is null immediately return it
-		if($newProfileId === null) {
+	public function setProfileId(?int $newProfileId) : void {
+		//if ID is null, return it immediately
+		if ($newProfileId === null) {
 			$this->profileId = null;
 			return;
 		}
-
-		// verify the profile id is positive
-		if($newProfileId <= 0) {
-			throw(new \RangeException("profile id is not positive"));
+		//check if input is greater than 0
+		if($newProfileId < 1) {
+			throw(new \RangeException("Profile ID is not a positive integer"));
 		}
-
-		// convert and store the profile id
 		$this->profileId = $newProfileId;
 	}
-
 	/**
-	 * accessor method for profile Activation Token
+	 *Accessor method to retreive profile's handle
 	 *
-	 * @return string value of profile Activation Token
+	 * @return string value of associated profileAtHandle
 	 **/
-	public function getProfileActivationToken(): string {
-		return ($this->profileActivationToken);
+	public function getProfileAtHandle() {
+		return($this->profileAtHandle);
 	}
-
 	/**
-	 * mutator method for profileActivationToken
+	 *Mutator method to alter profile's handle
 	 *
-	 * @param string $newProfileActivationToken new value of profile Activation Token
-	 * @throws \RangeException if $newProfileActivationToken is not positive* @throws \TypeError if $newProfileActivationToken is not a string
+	 * @param string $newAtHandle sets new value of profile handle
+	 * @throws \InvalidArgumentException if $newAtHandle contains no valid characters
 	 **/
-	public function setProfileActivationToken(string $newProfileActivationToken): void {
-
-		// verify the profile id is positive
-		if(empty($newProfileActivationToken) === true) {
-			throw(new \InvalidArgumentException("profile activation token is empty or insecure"));
+	public function setProfileAtHandle($newAtHandle) {
+		//sanitize and trim the new handle
+		$newAtHandle = trim($newAtHandle);
+		$newAtHandle = filter_var($newAtHandle, FILTER_SANITIZE_STRING, FILTER_FLAG_NO_ENCODE_QUOTES | FILTER_FLAG_STRIP_BACKTICK);
+		if(empty($newAtHandle) === true) {
+			throw(new \InvalidArgumentException("There are no valid characters in the entered handle."));
 		}
-
-		// convert and store the profile id
-		$this->profileActivationToken = $newProfileActivationToken;
-	}
-
-	/**
-	 * accessor method for profile At Handle
-	 *
-	 * @return string value of profile At Handle
-	 **/
-	public function getProfileAtHandle(): string {
-		return ($this->profileAtHandle);
-	}
-
-	/**
-	 * mutator method for profile At Handle
-	 *
-	 * @param string $newProfileAtHandle new value of profile at handle
-	 * @throws \InvalidArgumentException if $newProfileAtHandle is not a string or insecure
-	 * @throws \RangeException if $newProfileAtHandle is > 10 characters
-	 * @throws \TypeError if $newProfileAtHandle is not a string
-	 **/
-	public function setProfileAtHandle(string $newProfileAtHandle): void {
-		// verify the At handle is secure
-		$newProfileAtHandle = trim($newProfileAtHandle);
-		$newProfileAtHandle = filter_var($newProfileAtHandle, FILTER_SANITIZE_STRING, FILTER_FLAG_NO_ENCODE_QUOTES);
-		if(empty($newProfileAtHandle) === true) {
-			throw(new \InvalidArgumentException("profile at handle is empty or insecure"));
+		if (strlen($newAtHandle) > 32) {
+			throw(new \RangeException("The entered handle is too long."));
 		}
-		// verify the tweet content will fit in the database
-		if(strlen($newProfileAtHandle) > 10) {
-			throw(new \RangeException("profile at handle content too large"));
-		}
-
-// store the profile at handle content
-		$this->profileAtHandle = $newProfileAtHandle;
+		$this->profileAtHandle = $newAtHandle;
 	}
-
 	/**
-	 * accessor method for profile email
+	 *Accessor method to retreive profile Phone Number
 	 *
-	 * @return string value of profile email
+	 * @return int value of associated profilePhoneNumber
+	 * @throws \InvalidArgumentException if there is no valid phone number associated with the profileId
+	 **/
+	public function getProfilePhoneNUmber() {
+		if($this->profilePhoneNumber === NULL) {
+			throw(new \InvalidArgumentException("There is no phone number associated with this account."));
+		}
+		return($this->profilePhoneNumber);
+	}
+	/**
+	 *Mutator method to alter profile's phone number
+	 *
+	 * @param int $newPhoneNumber sets new value of Phone Number
+	 * @throws \RangeException if entered value is larger than 12
+	 **/
+	public function setProfilePhoneNumber(?int $newPhoneNumber) : int {
+		//validate the entered phone number isn't too long
+		$cleanedPhoneNumber = filter_var($newPhoneNumber, FILTER_SANITIZE_NUMBER_INT);
+		if (strlen($cleanedPhoneNumber) > 12 ) {
+			throw (new \RangeException("The entered number is too long."));
+		}
+		$this->profilePhoneNumber = $cleanedPhoneNumber;
+	}
+	/**
+	 *Accessor method to retreive profile's e-mail address
+	 *
+	 * @return string value of associated profileEmail
 	 **/
 	public function getProfileEmail() {
-		return ($this->profileEmail);
+		return($this->profileEmail);
 	}
-
 	/**
-	 * mutator method for profile Email
+	 *Mutator method to alter profile's e-mail address
 	 *
-	 * @throws \InvalidArgumentException if $newProfileEmail is not a valid object or string
-	 * @throws \RangeException if $newProfileEmail already exists
+	 * @param string $newEmailAddress sets new value of e-mail address
+	 * @throws \InvalidArgumentException if the e-mail is not valid for any reason
 	 **/
-	public function setProfileEmail ($newProfileEmail = null): void {
-		// base case: if the date is null, return error
-		if($newProfileEmail === null) {
-			$this->profileEmail = null;
-			return;
+	public function setProfileEmail($newEmailAddress) {
+		//sanitize and validate the entered e-mail
+		$cleanedEmail = filter_var($newEmailAddress, FILTER_SANITIZE_EMAIL);
+		if ($newEmailAddress !== $cleanedEmail && filter_var($newEmailAddress, FILTER_SANITIZE_EMAIL)) {
+			throw (new \InvalidArgumentException("The e-mail entered is not valid"));
 		}
+		$this->profileEmail = $cleanedEmail;
 	}
-
 	/**
-	 * accessor method for profile phone
+	 *Accessor method to retreive profile hash
 	 *
-	 * @return string value of profile phone
-	 **/
-	public function getProfilePhone() {
-		return ($this->profilePhone);
-	}
-
-	/**
-	 * mutator method for profile phone
-	 *
-	 * @param string $newProfilePhone new value of profile phone
-	 * @throws \RangeException if $newProfilePhone is not positive
-	 * @throws \TypeError if $newProfilePhone is not a string
-	 **/
-	public function setProfilePhone($newProfilePhone): void {
-		//if profile phone is null immediately return it
-		if($newProfilePhone === null) {
-			$this->profilePhone = null;
-			return;
-		}
-	}
-
-	/**
-	 * accessor method for profile hash
-	 *
-	 * @return string value of profile hash
+	 * @return int value of associated profileHash
 	 **/
 	public function getProfileHash() {
-		return ($this->profileHash);
+		return($this->profileHash);
 	}
-
 	/**
-	 * mutator method for profile phone
+	 *Mutator method to alter profile's hash
 	 *
-	 * @param int|null $newProfileHash new value of profile hash
-	 * @throws \RangeException if $newProfileHash is not positive
-	 * @throws \TypeError if $newProfileHash is not a string
+	 * @param string $newProfileHash sets new value of profileHash
+	 * @throws \RangeException if the hash is not the correct length or type
 	 **/
-	public function setProfileHash($newProfileHash): void {
-		//if profile hash is null immediately return it
-		if($newProfileHash === null) {
-			$this->profileHash = null;
-			return;
+	public function setProfileHash(?string $newProfileHash) : string {
+		//sanitize and validate the entered hash
+		$cleanedHash = filter_var($newProfileHash, FILTER_SANITIZE_STRING);
+		if (strlen($cleanedHash) !== 128) {
+			throw (new \RangeException("The entered hash is not the correct length."));
 		}
+		$this->profileHash = $cleanedHash;
 	}
-
 	/**
-	 * accessor method for profile salt
+	 *Accessor method to retreive profile salt
 	 *
-	 * @return string value of profile salt
+	 * @return int value of associated profileSalt
 	 **/
 	public function getProfileSalt() {
 		return ($this->profileSalt);
 	}
-
 	/**
-	 * mutator method for profile salt
+	 *Mutator method to alter profile's salt
 	 *
-	 * @param string $newProfileSalt new value of profile salt
-	 * @throws \RangeException if $newProfileSalt is not positive
-	 * @throws \TypeError if $newProfileSalt is not a string
+	 * @param string $newProfileSalt sets new value of profile's salt
+	 * @throws \RangeException if the salt is not the correct length or type
 	 **/
-	public function setProfileSalt(?int $newProfileSalt): void {
-		//if profile salt is null immediately return it
-		if($newProfileSalt === null) {
-			$this->profileSalt = null;
-			return;
+	public function setProfileSalt(?string $newProfileSalt) : string {
+		//sanitize and validate the entered salt
+		$cleanedSalt = filter_var($newProfileSalt, FILTER_SANITIZE_STRING);
+		if (strlen($cleanedSalt) !== 32) {
+			throw (new \RangeException("The entered salt is not the correct length."));
 		}
+		$this->profileSalt = $newProfileSalt;
 	}
-
 	/**
-	 * Inserts this profile into mySQL
+	 * Method to insert our variables into a Database
 	 *
-	 * @param \PDO @pdo PDO connection object
-	 * @throws \PDOException when mySQL related errors occur
-	 * @throws \TypeError if $pdo is not a PDO connection object
 	 *
-	 **/
-	public function insert(\PDO $pdo): void {
-		//enforce the profileId is null
-		if($this->profileId !== null) {
-			throw(new \PDOException("not a new profile"));
+	 */
+	public function insert(\PDO $pdoInsert) {
+		//Need to check if profile ID is not null, that is it alredy exists
+		if ($this->profileId !== null) {
+			throw (new \PDOException("The profile ID is not new."));
 		}
+		//prepping the command to be passed to the database
+		$queryInsert = "INSERT INTO profile(profileAtHandle, profilePhoneNumber, profileEmail, profileHash, profileSalt) VALUES (:profileAtHandle, :profilePhoneNumber, :profileEmail, :profileHash, :profileSalt)";
+		$preppedInsert = $pdoInsert->prepare($queryInsert);
+		//We must sub out the placeholders before submitting to the database
+		$parameters = ["profileAtHandle" => $this->profileAtHandle, "profilePhoneNumber" => $this->profilePhoneNumber, "profileEmail" => $this->profileEmail, "profileHash" => $this->profileHash, "profileSalt" => $this->profileSalt];
+		$preppedInsert->execute($parameters);
+		//We don't want to add the profile ID directly with the INSERT statement, so we add it here.  Also, it
+		// should've been null to this point, so now we set it
+		$this->profileId = intval($pdoInsert->lastInsertId());
+	}
+	/**
+	 * Method to update a profile database entity by profile ID (the primary key)
+	 *
+	 * @param \PDO $pdoUpdate
+	 *[TODO: Complete this doc bloc]
+	 */
+	public function update(\PDO $pdoUpdate) {
+		//first check if the profile ID exists, i.e. not null
+		if ($this->profileId === null) {
+			throw (new \PDOException("Unable to update profile -- that profile ID does not exist."));
+		}
+		//prepping the command to be passed to the database
+		$queryUpdate = "UPDATE profile SET profileAtHandle = :profileAtHandle, profilePhoneNumber = :profilePhoneNumber, profileEmail = :profileEmail, profileHash = :profileHash, profileSalt = :profileSalt WHERE profileId = :profileId";
+		$preppedUpdate = $pdoUpdate->prepare($queryUpdate);
+		//We must sub out the placeholders before submitting to the database
+		$parameters = ["profileAtHandle" => $this->profileAtHandle, "profilePhoneNumber" => $this->profilePhoneNumber, "profileEmail" => $this->profileEmail, "profileHash" => $this->profileHash, "profileSalt" => $this->profileSalt];
+		$preppedUpdate->execute($parameters);
+	}
+	/**
+	 * Method to delete a database entity based on profile ID
+	 *
+	 * @param \PDO $pdoDelete
+	 *[TODO: complete this doc bloc]
+	 */
+	public function delete(\PDO $pdoDelete) {
+		//first check if the profile ID exists, i.e. not null
+		if ($this->profileId === null) {
+			throw (new \PDOException("Unable to delete a profile that does not exist."));
+		}
+		//prepping the command to be passed to the database
+		$queryDelete = "DELETE FROM profile WHERE profileId = :profileId";
+		$preppedDelete = $pdoDelete->prepare($queryDelete);
+		//We must sub out the placeholder before submitting to the database
+		$parameters = ["profileId" => $this->profileId];
+		$preppedDelete->execute($parameters);
+	}
+	/**
+	 * Method to retrieve a profile by a given profile ID
+	 *
+	 * @param \PDO $pdoIdGet
+	 * @param int|null $profileId
+	 */
+	public function getProfileById(\PDO $pdoIdGet, ?int $profileId) {
+		//First check if $profileId is valid, that is not negative or zero
+		if($profileId < 1) {
+			throw (new \PDOException("The entered profile ID is not a postive integer."));
+		}
+		//prepping the command to be passed to the database
+		$queryIdGet = "SELECT profileId, profileAtHandle, profilePhoneNumber, profileEmail, profileHash, profileSalt FROM profile WHERE profileId = :profileId";
+		$preppedIdGet = $pdoIdGet->prepare($queryIdGet);
+		//We must sub out the placeholder before submitting to the database
+		$parameters = ["profileId => $profileId"];
+		$preppedIdGet->execute("$parameters");
 	}
 }
-  $query = "INSERT INTO profile(profileId, profileActivationToken, profileAtHandle, profileEmail, profilePhone, profileHash, 
-profileSalt) VALUES (:profileId, :profileActivationToken, :profileAtHandle, :profileEmail, :profilePhone, :profileHash, :profileSalt)";
-$statement = $pdo->prepare($query);
-
-$parameters = ["profileId" => $this -> profileId];
-
-/**
- * inserts this Tweet into mySQL
- *
- * @param \PDO $pdo PDO connection object
- * @throws \PDOException when mySQL related errors occur
- * @throws \TypeError if $pdo is not a PDO connection object
- **/
-public function insert(\PDO $pdo) : void {
-	// enforce the profileId is null (i.e., don't insert a profile that already exists)
-	if($this->profileId !== null) {
-		throw(new \PDOException("not a new profileId"));
-	}
-
-	// create query template
-	$query = "INSERT INTO profile(profileId, profileActvationToken, profileAtHandle, profileEmail, profileHash, profilePhone, profileSalt) VALUES(:profileId, :profileActvationToken, :profileAtHandle, :profileEmail, :profileHash, :profilePhone, :profileSalt,)";
-	$statement = $pdo->prepare($query);
-
-	// bind the member variables to the place holders in the template
-	$parameters = ["profileId" => $this->profileProfileId, "profileActivationToken" => $this->profileActivationToken, "profileAtHandle" => $this->profileAtHandle];
-	$statement->execute($parameters);
-
-	// update the null tweetId with what mySQL just gave us
-	$this->tweetId = intval($pdo->lastInsertId());
-}
-/**
- * deletes this Tweet from mySQL
- *
- * @param \PDO $pdo PDO connection object
- * @throws \PDOException when mySQL related errors occur
- * @throws \TypeError if $pdo is not a PDO connection object
- **/
-public function delete(\PDO $pdo) : void {
-	// enforce the tweetId is not null (i.e., don't delete a tweet that hasn't been inserted)
-	if($this->tweetId === null) {
-		throw(new \PDOException("unable to delete a tweet that does not exist"));
-	}
-
-	// create query template
-	$query = "DELETE FROM tweet WHERE tweetId = :tweetId";
-	$statement = $pdo->prepare($query);
-
-	// bind the member variables to the place holder in the template
-	$parameters = ["tweetId" => $this->tweetId];
-	$statement->execute($parameters);
-}
-
-/**
+?>
